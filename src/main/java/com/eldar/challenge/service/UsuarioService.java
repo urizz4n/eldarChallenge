@@ -20,6 +20,10 @@ public class UsuarioService {
 
     private List<Persona> personas = new ArrayList<>();
 
+    /**
+     * Devuelve a la persona según su DNI
+     * @return Persona buscada
+     */
     public Persona buscarPersonaPorDni(String dni) {
         return personas.stream()
                 .filter(p -> p.getDni().equals(dni))
@@ -27,6 +31,9 @@ public class UsuarioService {
                 .orElseThrow(() -> new PersonaNoEncontradaException("No se encontró un usuario con el DNI especificado."));
     }
 
+    /**
+     * Da de alta un usuario
+     */
     public void registrarUsuario(Persona persona) {
         if (personas.stream().anyMatch(p -> p.getDni().equals(persona.getDni()))) {
             throw new ObjetoDuplicadoException("Ya existe un usuario con el mismo DNI.");
@@ -34,11 +41,18 @@ public class UsuarioService {
         personas.add(persona);
     }
 
+    /**
+     * Elimina a un usuario según su DNI. Este método se ejecuta en simultaneo con uno que elimina también todas sus tarjetas.
+     */
     public void eliminarUsuario(String dni) {
         Persona persona = buscarPersonaPorDni(dni);
         personas.remove(persona);
     }
 
+    /**
+     * Cambia el o los atributos deseados de una persona. La modificación de varios atributos simultaneos es opcional.
+     * @return Persona modificada
+     */
     public Persona modificarUsuario(String dni,
                                     Optional<String> nombre,
                                     Optional<String> apellido,
@@ -69,6 +83,9 @@ public class UsuarioService {
         return persona;
     }
 
+    /**
+     * Confirma los cambios a la persona
+     */
     private static void realizarCambiosPersona(Optional<String> nombre, Optional<String> apellido, Optional<String> nuevoDni, Optional<String> email, Optional<LocalDate> fechaNacimiento, Persona persona) {
         fechaNacimiento.ifPresent(persona::setFechaNacimiento);
         nombre.ifPresent(persona::setNombre);
@@ -77,6 +94,9 @@ public class UsuarioService {
         nuevoDni.ifPresent(persona::setDni);
     }
 
+    /**
+     * Valida que se puedan realizar los cambios a la persona antes de realizar los cambios para evitar actualización parcial de la persona ante errores.
+     */
     private static void comprobarCambiosPersona(Optional<String> nombre, Optional<String> apellido, Optional<String> nuevoDni, Optional<String> email, Optional<LocalDate> fechaNacimiento) {
         nombre.ifPresent(Persona::validarNombre);
         apellido.ifPresent(Persona::validarNombre);

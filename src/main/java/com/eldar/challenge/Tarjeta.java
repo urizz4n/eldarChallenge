@@ -13,6 +13,7 @@ public class Tarjeta {
     private Persona titular;
     private String cvv;
 
+
     public Tarjeta(String marca, String numero, LocalDate fechaVencimiento, Persona titular, String cvv) {
         validarMarca(marca);
         validarNumero(numero);
@@ -26,6 +27,9 @@ public class Tarjeta {
         this.cvv = cvv;
     }
 
+    /**
+     * @param cvv
+     */
     public static void validarCvv(String cvv) {
         if (cvv == null || cvv.isEmpty()) throw new CampoVacioException("El CVV no puede estar vacío.");
         if (!cvv.matches("\\d{3}")) throw new FormatoInvalidoException("El CVV debe tener 3 dígitos.");

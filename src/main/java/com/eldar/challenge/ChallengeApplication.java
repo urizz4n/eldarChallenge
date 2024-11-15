@@ -1,9 +1,10 @@
 package com.eldar.challenge;
 
-import com.eldar.challenge.exception.PersonaNoEncontradaException;
-import com.eldar.challenge.service.UsuarioService;
+import com.eldar.challenge.exception.CampoVacioException;
+import com.eldar.challenge.exception.FormatoInvalidoException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -16,7 +17,9 @@ import java.util.Scanner;
 @SpringBootApplication
 public class ChallengeApplication {
 
+
 	public static void main(String[] args) {
+		// Con sólo esta linea ya es suficiente para que funcione el ejercicio 2.
 		SpringApplication.run(ChallengeApplication.class, args);
 		mostrarMenu();
 	}
@@ -64,14 +67,28 @@ public class ChallengeApplication {
 	}
 
 	private static void registrarPersona(Scanner scanner) {
-		System.out.println("Ingrese el nombre:");
-		String nombre = scanner.nextLine();
+		String nombre,apellido,dni,email;
+		try {
+			System.out.println("Ingrese el nombre:");
+			nombre = scanner.nextLine();
+			Persona.validarNombre(nombre);
 
-		System.out.println("Ingrese el apellido:");
-		String apellido = scanner.nextLine();
+			System.out.println("Ingrese el apellido:");
+			apellido = scanner.nextLine();
+			Persona.validarNombre(apellido);
 
-		System.out.println("Ingrese el DNI:");
-		String dni = scanner.nextLine();
+			System.out.println("Ingrese el DNI:");
+			dni = scanner.nextLine();
+			Persona.validarDni(dni);
+
+			System.out.println("Ingrese el email:");
+			email = scanner.nextLine();
+			Persona.validarEmail(email);
+
+		} catch (FormatoInvalidoException | CampoVacioException e) {
+			System.out.println(e);
+			return;
+		}
 
 		System.out.println("Ingrese la fecha de nacimiento (formato dd-MM-yyyy):");
 		String fechaNacimientoStr = scanner.nextLine();
@@ -85,8 +102,11 @@ public class ChallengeApplication {
 			return;
 		}
 
-		System.out.println("Ingrese el email:");
-		String email = scanner.nextLine();
+		try {
+			Persona.validarFechaNacimiento(fechaNacimiento);
+		} catch(FormatoInvalidoException e) {
+			System.out.println(e);
+		}
 
 		// Crear instancia de Persona y añadirla a la lista
 		Persona persona = new Persona(nombre, apellido, dni, fechaNacimiento, email);
@@ -97,20 +117,28 @@ public class ChallengeApplication {
 	}
 
 	private static void registrarTarjeta(Scanner scanner) {
-		System.out.println("Ingrese el DNI del titular:");
-		String dni = scanner.nextLine();
+		String dni,marca,numero,cvv;
+		try {
+			System.out.println("Ingrese el DNI del titular:");
+			dni = scanner.nextLine();
+			Persona.validarDni(dni);
 
-		System.out.println("Ingrese la marca de la tarjeta (VISA, NARA, AMEX):");
-		String marca = scanner.nextLine().toUpperCase();
+			System.out.println("Ingrese la marca de la tarjeta (VISA, NARA, AMEX):");
+			marca = scanner.nextLine().toUpperCase();
+			Tarjeta.validarMarca(marca);
 
-		// Validar marca
-		if (!marca.equals("VISA") && !marca.equals("NARA") && !marca.equals("AMEX")) {
-			System.out.println("Marca no válida. Debe ser VISA, NARA o AMEX.");
+			System.out.println("Ingrese el número de la tarjeta:");
+			numero = scanner.nextLine();
+			Tarjeta.validarNumero(numero);
+
+			System.out.println("Ingrese el CVV (3 dígitos):");
+			cvv = scanner.nextLine();
+			Tarjeta.validarCvv(cvv);
+
+		} catch (FormatoInvalidoException | CampoVacioException e) {
+			System.out.println(e);
 			return;
 		}
-
-		System.out.println("Ingrese el número de la tarjeta:");
-		String numero = scanner.nextLine();
 
 		System.out.println("Ingrese la fecha de vencimiento (formato MM-yyyy):");
 		String fechaVencimientoStr = scanner.nextLine();
@@ -130,19 +158,10 @@ public class ChallengeApplication {
 			return;
 		}
 
-		System.out.println("Ingrese el CVV (3 dígitos):");
-		String cvv = scanner.nextLine();
-
-		// Validar que el CVV tenga 3 dígitos
-		if (cvv.length() != 3 || !cvv.matches("\\d{3}")) {
-			System.out.println("CVV no válido. Debe ser un número de 3 dígitos.");
-			return;
-		}
-
 		Persona titular = personas.stream()
 				.filter(p -> p.getDni().equals(dni))
 				.findFirst()
-				.orElseThrow(() -> new PersonaNoEncontradaException("No se encontró un usuario con el DNI especificado."));
+				.orElse(null);
 
 		// Crear y agregar la tarjeta a la lista
 		Tarjeta tarjeta = new Tarjeta(marca, numero, fechaVencimiento, titular, cvv);
@@ -152,9 +171,15 @@ public class ChallengeApplication {
 	}
 
 	private static void consultarTarjetasPorDni(Scanner scanner) {
-		System.out.println("Ingrese el DNI del usuario:");
-		String dni = scanner.nextLine();
-
+		String dni;
+		try {
+			System.out.println("Ingrese el DNI del usuario:");
+			dni = scanner.nextLine();
+			Persona.validarDni(dni);
+		} catch (FormatoInvalidoException | CampoVacioException e) {
+			System.out.println(e);
+			return;
+		}
 		// Buscar todas las tarjetas que coincidan con el DNI
 		List<Tarjeta> tarjetasEncontradas = new ArrayList<>();
 		for (Tarjeta tarjeta : tarjetas) {
@@ -197,16 +222,12 @@ public class ChallengeApplication {
 	}
 
 	public static double calcularTasa(String marca, LocalDate fecha) {
-		switch (marca) {
-			case "VISA":
-				return (double) Math.max(0.3, Math.min((fecha.getYear() % 100)/ fecha.getMonthValue(), 5)) ;
-			case "NARA":
-				return Math.max(0.3, Math.min(fecha.getDayOfMonth() * 0.5, 5));
-			case "AMEX":
-				return Math.max(0.3, Math.min(fecha.getMonthValue() * 0.1, 5));
-			default:
-				throw new IllegalArgumentException("Marca de tarjeta no reconocida.");
-		}
+        return switch (marca) {
+            case "VISA" -> (double) Math.max(0.3, Math.min((fecha.getYear() % 100) / fecha.getMonthValue(), 5));
+            case "NARA" -> Math.max(0.3, Math.min(fecha.getDayOfMonth() * 0.5, 5));
+            case "AMEX" -> Math.max(0.3, Math.min(fecha.getMonthValue() * 0.1, 5));
+            default -> throw new IllegalArgumentException("Marca de tarjeta no reconocida.");
+        };
 
 	}
 }

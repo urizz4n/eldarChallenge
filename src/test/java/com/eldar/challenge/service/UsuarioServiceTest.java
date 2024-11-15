@@ -5,8 +5,10 @@ import com.eldar.challenge.exception.ObjetoDuplicadoException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class UsuarioServiceTest {
 
@@ -19,20 +21,28 @@ class UsuarioServiceTest {
 
     @Test
     void registrarUsuario_exito() {
+        // Tomar fecha de nacimiento
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate fechaNacimiento = LocalDate.parse("01-01-2000", formatter);
+
         // Crear un usuario de prueba
-        Persona persona = new Persona("Juan", "Perez", "12345678", null, "juan.perez@example.com");
+        Persona persona = new Persona("Juan", "Perez", "12345678", fechaNacimiento, "juan.perez@example.com");
 
         // Registrar el usuario
         usuarioService.registrarUsuario(persona);
 
         // Verificar que el usuario fue registrado
-        assertTrue(usuarioService.buscarPersonaPorDni("12345678").getNombre().equals("Juan"));
+        assertEquals("Juan", usuarioService.buscarPersonaPorDni("12345678").getNombre());
     }
 
     @Test
     void registrarUsuario_usuarioDuplicado() {
+        // Tomar fecha de nacimiento
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        LocalDate fechaNacimiento = LocalDate.parse("01-01-2000", formatter);
+
         // Crear un usuario de prueba
-        Persona persona = new Persona("Juan", "Perez", "12345678", null, "juan.perez@example.com");
+        Persona persona = new Persona("Juan", "Perez", "12345678", fechaNacimiento, "juan.perez@example.com");
 
         // Registrar el usuario una vez
         usuarioService.registrarUsuario(persona);

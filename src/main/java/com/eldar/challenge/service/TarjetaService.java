@@ -21,7 +21,10 @@ public class TarjetaService {
     private static final Set<String> numerosGenerados = new HashSet<>();
     private static final Random random = new Random();
 
-
+    /**
+     * Devuelve todas las tarjetas del usuario según su DNI
+     * @return Todas las tarjetas del usuario
+     */
     public List<Tarjeta> buscarTarjetasPorDni(String dni) {
         List<Tarjeta> tarjetasEncontradas = tarjetas.stream()
                 .filter(t -> t.getTitular().getDni().equals(dni))
@@ -34,6 +37,10 @@ public class TarjetaService {
         return tarjetasEncontradas;
     }
 
+    /**
+     * Devuelve una tarjeta según su número
+     * @return Tarjeta buscada
+     */
     public Tarjeta buscarTarjetaPorNumero(String numeroTarjeta) {
         return tarjetas.stream()
                 .filter(t -> t.getNumero().equals(numeroTarjeta))
@@ -41,12 +48,19 @@ public class TarjetaService {
                 .orElseThrow(() -> new TarjetaNoEncontradaException("No se encontró una tarjeta con el número especificado."));
     }
 
+    /**
+     * Verifica si la persona ya tiene una tarjeta de la marca solicitada
+     */
     public void verificarTarjetaDuplicada(String dni, String marca) {
         if (tarjetas.stream().anyMatch(t -> t.getMarca().equals(marca) && t.getTitular().getDni().equals(dni))) {
             throw new ObjetoDuplicadoException("Ya existe una tarjeta con la misma marca y DNI.");
         }
     }
 
+    /**
+     * Crea una tarjeta de crédito con datos aleatorios.
+     * @return Tarjeta creada
+     */
     public Tarjeta crearTarjetaAleatoria(String marca, Persona titular) {
         String numeroTarjeta;
         // Genera numeros hasta generar una combinacion única
@@ -69,10 +83,16 @@ public class TarjetaService {
         return tarjeta;
     }
 
+    /**
+     * Elimina todas las tarjetas de un usuario al darlo de baja
+     */
     public void eliminarTarjetasPorDni(String dni) {
         tarjetas.removeIf(t -> t.getTitular().getDni().equals(dni));
     }
 
+    /**
+     * Elimina una tarjeta específica según su número
+     */
     public void eliminarTarjetaPorNumero(String numero) {
         Tarjeta tarjeta = tarjetas.stream()
                 .filter(t -> t.getNumero().equals(numero))
@@ -81,6 +101,9 @@ public class TarjetaService {
         tarjetas.remove(tarjeta);
     }
 
+    /**
+     * Cambia el titular de todas las tarjetas de una persona
+     */
     public void actualizarTitularDeTarjetas(String dni,Persona nuevoTitular) {
         tarjetas.stream()
                 .filter(t -> t.getTitular().getDni().equals(dni))
@@ -89,6 +112,9 @@ public class TarjetaService {
                 });
     }
 
+    /**
+     * Cambia el o los atributos deseados de una tarjeta. La modificación de varios atributos simultaneos es opcional.
+     */
     public void modificarTarjeta(String numero,
                                  Optional<String> marca,
                                  Optional<String> fechaVencimientoStr,
@@ -111,6 +137,9 @@ public class TarjetaService {
         realizarCambiosTarjeta(marca, fechaVencimientoStr, titular, numeroNuevo, cvv, tarjeta);
     }
 
+    /**
+     * Valida que se puedan realizar los cambios a la tarjeta antes de realizar los cambios para evitar actualización parcial de la tarjeta ante errores.
+     */
     private static void comprobarCambiosTarjeta(Optional<String> marca, Optional<String> fechaVencimientoStr, Optional<Persona> titular, Optional<String> numeroNuevo, Optional<String> cvv) {
         marca.ifPresent(Tarjeta::validarMarca);
         fechaVencimientoStr.ifPresent(TarjetaService::validarFechaVencimiento);
@@ -119,6 +148,9 @@ public class TarjetaService {
         cvv.ifPresent(Tarjeta::validarCvv);
     }
 
+    /**
+     * Confirma los cambios a la tarjeta.
+     */
     private static void realizarCambiosTarjeta(Optional<String> marca, Optional<String> fechaVencimientoStr, Optional<Persona> titular, Optional<String> numeroNuevo, Optional<String> cvv, Tarjeta tarjeta) {
         marca.ifPresent(tarjeta::setMarca);
         if (fechaVencimientoStr.isPresent()) {
@@ -159,6 +191,9 @@ public class TarjetaService {
         }
     }
 
+    /**
+     * Consulta tasa de tarjeta AMEX, VISA o NARA
+     */
     public double consultarTasa(String marca, String fechaStr) {
         LocalDate fecha;
         if (fechaStr.isEmpty()) {
